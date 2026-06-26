@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import {connectDB} from './config/db.js';
 import todoRoutes from './routes/todo.routes.js';
 import { errorHandler } from './middlewares/error.middleware.js';
+import authRoutes from './routes/auth.routes.js';
 
 dotenv.config();
 
@@ -19,10 +20,11 @@ connectDB();
 
 //Routes
 //app.use('/api', todoRoutes)
-app.use('/api/Todos', todoRoutes)
+app.use('/api/todos', todoRoutes)
+app.use('/api/auth', authRoutes)
 
 //use error middleware
-app.use(errorHandler);
+app.use(errorHandler);  
 
 //Start Server
  const PORT=process.env.PORT || 3001;

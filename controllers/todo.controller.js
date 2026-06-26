@@ -11,7 +11,7 @@ export const createTODO = asyncHandler(async(req,res)=>{
 
    //validation
    if(!title || title.trim()===""){
-res.status(400).json({
+ return res.status(400).json({
     success:false,
     message:"Title is required",
 });
@@ -19,7 +19,9 @@ res.status(400).json({
    
    const todo=await Todo.create({
     title,
-    description
+    description,
+    user:req.user._id
+
    })
 
    return res.status(201).json({
@@ -38,9 +40,12 @@ export const getTodos=asyncHandler(async(req,res)=>{
 const { search, sort, page=1, limit=10} = req.query;
 
 // Base query
-let query = {};
+let query ={
+    user:req.user._id
+};
 //Search by title
 if(search){
+    
     query.title = {$regex: search, $options: "i"};
 }
 
@@ -50,12 +55,15 @@ let sortOption = {};
   else sortOption.createdAt=-1; // -1 for descending
        
 //Pagination
-       const skip=(page-1)*limit;
+      const pageNumber = Number(page);
+const limitNumber = Number(limit);
+
+const skip = (pageNumber - 1) * limitNumber;
 
        const todos=await Todo.find(query)
        .sort(sortOption)
        .skip(skip)
-       .limit(limit);
+       .limit(limitNumber);
        const totalTodos=await Todo.countDocuments(query);
 
        return res.status(200).json({
@@ -81,7 +89,10 @@ let sortOption = {};
                 });
             }
 
-            const todo=await Todo.findById(id);
+            const todo=await Todo.findOne({
+                user:req.user._id,
+                _id:id
+  });
             //if todo is not found
             if(!todo){
                 return res.status(404).json({
@@ -123,10 +134,13 @@ if(!title || title.trim()===""){
 }
     
 //Update todo
- const todo = await Todo.findByIdAndUpdate(id, {
+ const todo = await Todo.findOneAndUpdate({
+    user:req.user._id,
+    _id:id
+    }, {
     title,
     description
- }, {new:true, runsValidators:true}
+ }, {new:true, runValidators:true}
  );
 
  //if todo is not found
@@ -159,7 +173,10 @@ export const toggleTodoByID =asyncHandler( async(req,res)=>{
         }
 
 
-const todo=await Todo.findById(id);
+const todo=await Todo.findOne({
+    _id:id,
+    user:req.user._id
+});
 
 //if todo not found
 if(!todo){
@@ -195,7 +212,10 @@ export const  deleteByID=asyncHandler(async(req,res)=>{
  }
 
 //delete todo
- const todo=await Todo.findByIdAndDelete(id);
+ const todo=await Todo.findOneAndDelete({
+    _id:id,
+    user:req.user._id
+ });
 
  //if todo is not found
  if(!todo){

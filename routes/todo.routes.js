@@ -3,6 +3,9 @@
 import { asyncHandler } from '../middlewares/asyncHandler.js';
  const router=express.Router();
 
+import{protect} from '../middlewares/auth.middleware.js';
+
+router.use(protect);
 
 
  //create todo
